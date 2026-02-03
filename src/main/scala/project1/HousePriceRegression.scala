@@ -10,6 +10,9 @@ object HousePriceRegression {
 
 
   @main def run(): Unit = {
-    Project1Utils.run_linear_regressions(data.x, data.y)
+    Project1Utils.runLinearRegressions(data.x, data.y)
+    Project1Utils.runRidgeRegressions(data.x, data.y)
+    Project1Utils.runLassoRegressions(data.x, data.y)
+    Project1Utils.runSymRidgeRegression(data.x, data.y)
   }
 }
