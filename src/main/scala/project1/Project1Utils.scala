@@ -2,7 +2,7 @@ package project1
 
 import scalation.sq
 import scalation.mathstat.*
-import scalation.modeling.{LassoRegression, Regression, RidgeRegression, SymRidgeRegression, TranRegression}
+import scalation.modeling.{qk, LassoRegression, Regression, RidgeRegression, SymRidgeRegression, TranRegression}
 import scala.math.sqrt
 
 class Project1Utils(x: MatrixD, y: VectorD, fname: Array[String]) {
@@ -98,4 +98,40 @@ class Project1Utils(x: MatrixD, y: VectorD, fname: Array[String]) {
     symRidgeRegression.validate()
     println(symRidgeRegression.summary())
   }
+
+  //--- Feature Selection methods ---
+  // Note - these may need to be changed to allow us to analyze
+  //        differences/see how models would evolve using the techniques
+  def runForwardSelect(): Unit = {
+    val reg = new Regression(x,y,fname)
+    val (cols, rSq) = reg.forwardSelAll()
+    val order = getImportance(cols, rSq, reg)
+    println(s"Columns ranked in order of importance from forward select: ${order.mkString("Array(", ", ", ")")}")
+  }
+
+  def runBackwardsElimination(): Unit = {
+    val reg = new Regression(x,y,fname)
+    val (cols, rSq) = reg.backwardElimAll(first=0)
+    val order = getImportance(cols, rSq, reg)
+    println(s"Columns ranked in order of importance from backward select: ${order.mkString("Array(", ", ", ")")}")
+  }
+
+  def runStepwiseSelect(): Unit = {
+    val reg = new Regression(x, y, fname)
+    val (cols, rSq) = reg.stepwiseSelAll()
+    val order = getImportance(cols, rSq, reg)
+    println(s"Columns ranked in order of importance from stepwise select: ${order.mkString("Array(", ", ", ")")}")
+  }
+
+  private def getImportance(cols: Iterable[Int], rSq: MatrixD, regression: Regression): Array[Int] = {
+    println(f"cols: ${cols.size}")
+    println(s"rSq = $rSq")
+    val importance = regression.importance(cols.toArray, rSq)
+
+    // retain only the column numbers for readability
+    importance.map(_._1)
+  }
+
+
+
 }

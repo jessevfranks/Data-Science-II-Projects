@@ -10,10 +10,13 @@ object HousePriceRegression {
 
   @main def run(): Unit = {
     val utils = new Project1Utils(data.x, data.y, data.fname)
-    utils.runLinearRegressions()
-    utils.runRidgeRegressions()
-    utils.runLassoRegressions()
-    utils.runTransformedRegressions()
-    utils.runSymRidgeRegression()
+//    utils.runLinearRegressions()
+//    utils.runRidgeRegressions()
+//    utils.runLassoRegressions()
+//    utils.runTransformedRegressions()
+//    utils.runSymRidgeRegression()
+//    utils.runForwardSelect()
+//    utils.runBackwardsElimination()
+    utils.runStepwiseSelect()
   }
 }
