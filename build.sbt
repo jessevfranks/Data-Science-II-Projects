@@ -23,3 +23,4 @@ lazy val scalation = project.in(file("."))
   )
 
 fork := true
+outputStrategy := Some(StdoutOutput)
