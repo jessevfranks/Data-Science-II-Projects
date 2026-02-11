@@ -100,7 +100,7 @@ object Scala2LaTeX:
         withCoeff (s"$op\\big(x^{(${exo})}_{t-$lag}\\big)")
 
       case _ =>
-        // Fallback: still coefficiented, render raw token safely
+        // Fallback: still has coefficient, render raw token safely
         withCoeff (s"\\text{${feat.replace ("\\", "\\\\")}}")
   end feature2LatexTerm
 
@@ -271,31 +271,49 @@ end scala2LaTeXTest2
     1.0, 28.450,  459.0,  99.217, 56.0,    // Lasalle
     1.0, 25.900,   19.0,  97.433, 62.0)    // Cameron
 
-  val x = xy.not (?, xy.dim2-1)                                     // matrix of predictor variable values
-  val y = xy(?, xy.dim2-1)                                          // original scale response vector
+  val x   = xy.not (?, xy.dim2-1)                                   // matrix of predictor variable values
+  val y   = xy(?, xy.dim2-1)                                        // original scale response vector
+  val xy_ = xy(?, 1 until xy.dim2)                                  // drop the column of all ones from xy
+  val x_  = x(?, 1 until x.dim2)                                    // drop the column of all ones from x
 
   val n_q = 15                                                      // number of core metrics
   val r_q = 0 until 15                                              // range of core metrics
 
-  val colName = "Metric, Regression, Ridge, Lasso, Transformed"     // column names -- which model
+  val colName = "Metric, Regression, Ridge, Lasso, Transformed, Symbolic"  // column names -- which models
   val rowName = modeling.qoF_names.take(n_q)                        // row names -- which QoF metric
 
+  banner ("Regression Model")
   val mod1 = modeling.Regression (xy)()                             // Regression model
   val qof1 = mod1.trainNtest ()()._2(r_q)                           // train and test on full dataset
+  println (mod1.summary ())
 
-  val xy_  = xy(?, 1 until xy.dim2)                                 // drop the column of all ones 
+  banner ("Ridge Regression Model")
   val mod2 = modeling.RidgeRegression (xy_)()                       // Ridge Regression model
   val qof_ = mod2.trainNtest ()()._2(r_q)                           // train and test on full dataset
   val qof2 = modeling.RidgeRegression.fix_smape (mod2, y, qof_)
+  println (mod2.summary ())
 
+  banner ("Lasso Regression Model")
   modeling.RidgeRegression.hp("lambda") = 0.02                      // adjust shrinkage hyper-parameter
   val mod3 = modeling.LassoRegression (xy)()                        // Lasso Regression model
   val qof3 = mod3.trainNtest ()()._2(r_q)                           // train and test on full dataset
+  println (mod3.summary ())
 
+  banner ("Transfomed Regression Model")
   val mod4 = new modeling.TranRegression (x, y)                     // Transformed Regression model
+  // defaults to log1p, try other transformations
   val qof4 = mod4.trainNtest ()()._2(r_q)                           // train and test on full dataset
+  println (mod4.summary ())
 
-  val qofs = MatrixD (qof1, qof2, qof3, qof4).transpose             // put QoFs in a matrix
+  banner ("Symbolic Regression Model")
+  val mod5 = modeling.SymRidgeRegression.quadratic (x_, y)          // simple Symbolic Regression model
+  // try other forms for Symbolic Regression
+  val qof5 = mod5.trainNtest ()()._2(r_q)                           // train and test on full dataset
+  println (mod5.summary ())
+
+  banner ("Copy-paste the LateX table below into a .tex file")
+
+  val qofs = MatrixD (qof1, qof2, qof3, qof4, qof5).transpose       // put QoFs in a matrix
 
   val caption = "Texas Temperatures: Regression, Ridge, Lasso, Transformed"   // LaTex figure caption
   val name    = "Texas-Temps"

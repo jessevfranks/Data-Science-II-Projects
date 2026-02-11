@@ -519,13 +519,13 @@ end regressionTest7
 
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 /** The `regressionTest8` main function trains a regression model on the Boston House Prices
- *  dataset.
+ *  dataset.  It illustrates use of the `load` method in the `MatrixD` object.
+ *  @see `scalation.mathstat.MatrixD`
  *  > runMain scalation.modeling.regressionTest8
  */
 @main def regressionTest8 (): Unit =
 
     val xy = MatrixD.load ("boston_house_prices.csv", 1, 0)
-
     banner ("Boston House Prices")
     val mod = Regression (xy)()                               // create model with intercept
     mod.trainNtest ()()                                       // train and test the model
