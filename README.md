@@ -78,6 +78,7 @@ Each project follows a structured data science pipeline:
 
 * In-Sample Fit
 * Validation Split
+* Cross-Validation (linear regression)
 
 **4. Feature Selection**
 
