@@ -10,7 +10,7 @@ object HousePriceRegression {
   val dataName = "HousePriceRegression"
   val data: Dataset = Dataset(dataName, filePath, 7, Array(0, 1, 2, 3, 4, 5), 6)
 
-  @main def run(): Unit = {
+  @main def runHousePriceRegressions(): Unit = {
     val utils = new Project1Utils(data.x, data.y, data.fname)
     //utils.runLinearRegressions()
     //utils.runRidgeRegressions()
