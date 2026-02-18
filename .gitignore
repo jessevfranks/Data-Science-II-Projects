@@ -4,6 +4,7 @@ target/
 !**/src/test/**/target/
 data/
 !data/**/README.md
+src/main/scala/personal/
 
 ### IntelliJ IDEA ###
 project/
@@ -53,13 +54,8 @@ build/
 # Scala / Metals / Bloop
 .metals/
 .bloop/
-.vscode/
-target/
 
 # Python
 __pycache__/
 *.pyc
 .ipynb_checkpoints/
-
-# OS junk
-.DS_Store
