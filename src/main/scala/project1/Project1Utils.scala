@@ -99,6 +99,24 @@ class Project1Utils(x: MatrixD, y: VectorD, fname: Array[String]) {
     println(symRidgeRegression.summary())
   }
 
+  def runSymRidgeRegressionMPG(): Unit = {
+    val xNoIntercept = x.not(?, 0)
+    val fnameNoIntercept = fname.drop(1)
+
+    // val symRidgeRegression = SymRidgeRegression.quadratic(x, y, fname)
+    val symRidgeRegression = SymRidgeRegression.quadratic(xNoIntercept, y, fnameNoIntercept)
+
+    // run in-sample split (default)
+    println("SymRidge Regression: In-Sample")
+    symRidgeRegression.trainNtest()()
+    println(symRidgeRegression.summary())
+
+    // run a train-test-split of 80-20 (default)
+    println("SymRidge Regression: TT Split of 80/20")
+    symRidgeRegression.validate()
+    println(symRidgeRegression.summary())
+  }
+
   //--- Feature Selection methods ---
   // Note - these may need to be changed to allow us to analyze
   //        differences/see how models would evolve using the techniques
