@@ -5,6 +5,7 @@ target/
 data/
 !data/**/README.md
 src/main/scala/personal/
+notebooks/personal
 
 ### IntelliJ IDEA ###
 project/
