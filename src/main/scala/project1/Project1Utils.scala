@@ -99,6 +99,7 @@ class Project1Utils(x: MatrixD, y: VectorD, fname: Array[String]) {
     println(symRidgeRegression.summary())
   }
 
+/**
   def runSymRidgeRegressionMPG(): Unit = {
     val xNoIntercept = x.not(?, 0)
     val fnameNoIntercept = fname.drop(1)
@@ -116,6 +117,7 @@ class Project1Utils(x: MatrixD, y: VectorD, fname: Array[String]) {
     symRidgeRegression.validate()
     println(symRidgeRegression.summary())
   }
+*/
 
   //--- Feature Selection methods ---
   // Note - these may need to be changed to allow us to analyze
