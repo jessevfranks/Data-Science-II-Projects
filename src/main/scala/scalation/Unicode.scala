@@ -55,7 +55,7 @@ object Unicode:
                      ('↦', '\u21A6'),     // Rightwards Arrow From Bar (Maps To)      Mapping
 
                      ('∀', '\u2200'),     // For All (Universal Quantifier)           Logic
-                     ('∂', '\u2202'),     // Partial Differential                     Calculus
+                     ('∂', '\u2202'),     // Partial Differential                     Calculus (use d for derivative)
                      ('∃', '\u2203'),     // There Exists (Existential Quantifier)    Logic
                      ('∄', '\u2204'),     // Not Exists (Existential Quantifier)      Logic
                      ('∆', '\u2206'),     // Difference                               Time Series
@@ -111,8 +111,10 @@ object Unicode:
 // special values
 
    //               Symbol Code Point     Description                                 Category
-   val sv =  Array ( ('∅', '\u2205'),     // Empty Set                                Set Theory
-                     ('∞', '\u221E'))     // Infinity                                 Miscellaneous
+    val sv =  Array ( ('ŷ', '\u0177'),     // y-hat (estimate for y)                   Statistics
+                      ('ƒ', '\u0192'),     // f with a hook                            ƒ = f' (derivative of f)
+                      ('∅', '\u2205'),     // Empty Set                                Set Theory
+                      ('∞', '\u221E'))     // Infinity                                 Miscellaneous
 
 // Small Greek letters '\u03B1' to '\u03C9'
 
