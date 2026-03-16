@@ -13,10 +13,12 @@
  *  @note    the symbol ƒ indicates the derivative of function f, i.e., ƒ = f'
  */
 
-package scalation.modeling
+package scalation
+package modeling
 
-import scalation.mathstat.VectorDOps.*
-import scalation.mathstat.{MatrixD, Plot, VectorD}
+import scalation.mathstat.{VectorD, MatrixD, Plot}
+import scalation.mathstat.VectorDOps._
+//import ActivationFun._
 
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 /** The `SimpleNN` object contains a simple dataset for testing Gradient Descent (GD)
@@ -26,7 +28,7 @@ import scalation.mathstat.{MatrixD, Plot, VectorD}
 object SimplePerceptron:
 
     // 9 data points:         One    x1    x2    y1   y2
-    val xy = MatrixD ((9, 5), 1.0,  0.1,  0.1,  0.5, 0.25,      // dataset
+    val xy = MatrixD ((9, 5), 1.0,  0.1,  0.1,  0.5, 0.25,       // dataset
                               1.0,  0.1,  0.5,  0.3, 0.49,
                               1.0,  0.1,  1.0,  0.2, 0.64,
 
@@ -38,11 +40,11 @@ object SimplePerceptron:
                               1.0,  1.0,  0.5,  0.8, 0.04,
                               1.0,  1.0,  1.0,  0.5, 0.25)
 
-    val (x, y) = (xy(?, 0 until 3), xy(?, 3))                   // input matrix, output/response vector
+    val (x, y) = (xy(?, 0 until 3), xy(?, 3))                    // input matrix, output/response vector
 
 end SimplePerceptron
 
-import scalation.modeling.SimplePerceptron.*
+import SimplePerceptron._
 
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 /** The `simplePerceptron1` main function illustrates the use of Gradient Descent (GD) to
@@ -59,31 +61,34 @@ import scalation.modeling.SimplePerceptron.*
  */
 @main def simplePerceptron1 (): Unit =
 
-    val sst = (y - y.mean).normSq                               // sum of squares total
+    val sst = (y - y.mean).normSq                                // sum of squares total
 
-    val b = VectorD (0.1, 0.2, 0.1)                             // initial weights/parameters (random in practice)
+    val b = VectorD (0.1, 0.2, 0.1)                              // initial weights/parameters (random in practice)
 
-    val η = 2.5                                                 // learning rate (to be tuned)
+    val η = 2.5                                                  // learning rate (to be tuned)
     var u, ŷ, ε, ƒ, δ, g: VectorD = null
 
     for epoch <- 1 to 10 do
         println (s"Improvement step $epoch")
+        // must split xy?
+    
 
         // forward prop: input -> output
-        u =                                                     // pre-activation vector
-        ŷ =                                                     // prediction vector
-        ε =                                                     // error vector
-
+        u = x * b                                                // pre-activation vector
+        ŷ = u.map(ui => 1.0 / (1.0 + math.exp(-ui)))             // prediction vector
+        ε = y - ŷ                                                // error vector
+   
         // backward prop: output -> input
-        ƒ =                                                     // derivative (f') for sigmoid
-        δ =                                                     // delta correction vector
-        g =                                                     // gradient vector (x.ᵀ is transpose of matrix x)
+        // compute the derivative of the sigmoid function for every prediction value.
+        ƒ = ŷ * (VectorD.one(ŷ.dim) - ŷ)                          // derivative (f') for sigmoid
+        δ = ε * ƒ                                                 // delta correction vector
+        g = -(x.transpose * δ)                                    // gradient vector (x.ᵀ is transpose of matrix x)
 
         // parameter update
-        b -=                                                    // update parameter vector
+        b -= η * g                                                // update parameter vector
 
-        val sse = ε.normSq                                      // sum of squared errors
-        val r2  = 1.0 - sse / sst                               // R^2
+        val sse = ε.normSq                                        // sum of squared errors
+        val r2  = 1.0 - sse / sst                                 // R^2
 
         println (s"""
         u   = $u
