@@ -9,7 +9,12 @@ import scalation.modeling.qk
 class Project2Utils(x: MatrixD, y: VectorD, fname: Array[String]) {
 
   // Convert VectorD -> MatrixD for NeuralNet_3L 
-  private val yMat: MatrixD = MatrixD.fromVector(y)
+  private val yMat: MatrixD = MatrixD.fromVector(y) // y requires matrixD here, and MatrixD.fromVector(y) is the correct conversion method.
+  // Why convert types? = Regression (Project 1) is a single-output model. It only ever predicts one column, so a VectorD is sufficient and more natural.
+  // The core math for NNets operates on matrices (weights are MatrixD, predictions are MatrixD, deltas are MatrixD)
+  //     So the y parameter must also be MatrixD to keep everything dimensionally consistent during forward/backward propagation.
+  // The .perceptron factory method is the bridge. When u only have one output (which is the common regression case), 
+  //    ScalaTion provides .perceptron specifically to accept a VectorD and handle the conversion to MatrixD internally.
 
   // 1. 2L Neural Network must use .perceptron factory since y is a single VectorD
   def runNeuralNet2L(): Unit = {
