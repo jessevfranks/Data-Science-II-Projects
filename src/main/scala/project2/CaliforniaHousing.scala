@@ -18,8 +18,8 @@ object CaliforniaHousing {
     utils.runNeuralNet3L()
 
     // Bonus: Feature selection
-    // utils.runForwardSelect()
-    // utils.runBackwardsElimination()
-    // utils.runStepwiseSelect()
+    // utils.runForwardSelect() // Order: 0, 8, 2, 1, 7, 3, 6, 5, 4
+    // utils.runBackwardsElimination() // Order: 0, 8, 1, 6, 3, 7, 5, 4
+    // utils.runStepwiseSelect() // Order: 0, 8, 2, 1, 7, 3, 6, 5 (left 4 out)
   }
 }
