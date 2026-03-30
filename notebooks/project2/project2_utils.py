@@ -162,31 +162,30 @@ class PyTorchNetUtils:
             test_loss /= test_size
             r2_score = self._calculate_r2(all_targets, all_preds)
 
-            print(f"Final Test (Out-of-Sample) MSE Loss: {test_loss:.4f | R^2: {r2_score:.4f}}")
+            print(f"Final Test (Out-of-Sample) MSE Loss: {test_loss:.4f} | R^2: {r2_score:.4f}")
 
         return model
 
-    def runNeuralNet2L(self, eta=0.1, bSize=20, f=torch.sigmoid, epochs=100):
+    def runNeuralNet2L(self, eta=0.1, bSize=20, f=torch.relu, epochs=100):
         print("\n--- Training NeuralNet_2L ---")
         model = NeuralNet_2L(self.input_dim, self.output_dim, f)
         self._train_model_in_sample(model, eta, bSize, epochs)
         self._train_model_tts(model, eta, bSize, epochs)
 
-    def runNeuralNet3L(self, eta=0.1, bSize=20, nz=3, f1=torch.sigmoid, f2=torch.sigmoid, epochs=100):
+    def runNeuralNet3L(self, eta=0.1, bSize=20, nz=3, f1=torch.relu, f2=torch.relu, epochs=100):
         print("\n--- Training NeuralNet_3L ---")
         model = NeuralNet_3L(self.input_dim, nz, self.output_dim, f1, f2)
         self._train_model_in_sample(model, eta, bSize, epochs)
         self._train_model_tts(model, eta, bSize, epochs)
 
-    def runNeuralNet4L(self, eta=0.1, bSize=20, nz1=4, nz2=3, f1=torch.sigmoid, f2=torch.sigmoid, f3=torch.sigmoid, epochs=100):
+    def runNeuralNet4L(self, eta=0.1, bSize=20, nz1=4, nz2=3, f1=torch.relu, f2=torch.relu, f3=torch.relu, epochs=100):
         print("\n--- Training NeuralNet_4L ---")
         model = NeuralNet_4L(self.input_dim, nz1, nz2, self.output_dim, f1, f2, f3)
         self._train_model_in_sample(model, eta, bSize, epochs)
         self._train_model_tts(model, eta, bSize, epochs)
 
     def runNeuralNetDeep(self, eta=0.001, bSize=32, nz1=32, nz2=16, epochs=100):
-        print("\n--- Training NeuralNet_Deep (Custom Architecture) ---")
+        print(f"\n--- Training NeuralNet_Deep (nz1={nz1}, nz2={nz2}) ---")
         model = NeuralNet_Deep(self.input_dim, self.output_dim, nz1, nz2)
-        # Reusing your existing training logic
         self._train_model_in_sample(model, eta, bSize, epochs)
         self._train_model_tts(model, eta, bSize, epochs)
