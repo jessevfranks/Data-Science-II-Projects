@@ -43,6 +43,27 @@ class NeuralNet_4L(nn.Module):
         out = self.act2(self.layer2(out))
         return self.act3(self.layer3(out))
 
+class NeuralNet_Deep(nn.Module):
+    """
+    Advanced Architecture:
+    Input -> [Linear -> BatchNorm -> ReLU -> Dropout] x 2 -> Output
+    """
+    def __init__(self, input_dim, output_dim, nz1=16, nz2=8):
+        super(NeuralNet_Deep, self).__init__()
+        self.network = nn.Sequential(
+            nn.Linear(input_dim, nz1),
+            nn.BatchNorm1d(nz1),
+            nn.ReLU(),
+            nn.Dropout(0.2),
+            nn.Linear(nz1, nz2),
+            nn.BatchNorm1d(nz2),
+            nn.ReLU(),
+            nn.Linear(nz2, output_dim)
+        )
+
+    def forward(self, x):
+        return self.network(x)
+
 class PyTorchNetUtils:
     def __init__(self, X, y):
         """
@@ -160,5 +181,12 @@ class PyTorchNetUtils:
     def runNeuralNet4L(self, eta=0.1, bSize=20, nz1=4, nz2=3, f1=torch.sigmoid, f2=torch.sigmoid, f3=torch.sigmoid, epochs=100):
         print("\n--- Training NeuralNet_4L ---")
         model = NeuralNet_4L(self.input_dim, nz1, nz2, self.output_dim, f1, f2, f3)
+        self._train_model_in_sample(model, eta, bSize, epochs)
+        self._train_model_tts(model, eta, bSize, epochs)
+
+    def runNeuralNetDeep(self, eta=0.001, bSize=32, nz1=32, nz2=16, epochs=100):
+        print("\n--- Training NeuralNet_Deep (Custom Architecture) ---")
+        model = NeuralNet_Deep(self.input_dim, self.output_dim, nz1, nz2)
+        # Reusing your existing training logic
         self._train_model_in_sample(model, eta, bSize, epochs)
         self._train_model_tts(model, eta, bSize, epochs)
