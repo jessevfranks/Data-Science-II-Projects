@@ -1,6 +1,9 @@
 # Diabetes Health Indicators
 
-### diabetes_NNet.py output:
+I created two python files, diabetes_NNet (standalone PyTorch code) and diabetesMain (PyTorchNetUtils), so that I could compare the accuracy and outputs. 
+
+
+## diabetes_NNet.py output:
 
 Model Comparison:
 Model | Train Acc | Test Acc
@@ -17,54 +20,88 @@ LR    | Train Acc | Test Acc
 0.001 | 0.7569     | 0.7539
 
 
-### diabetesMain.py output: 
+Model Comparison: 
+All three architectures learned meaningfully. The 2L model (basically logistic regression) got a ~74.7% accuracy, which tells me that there's a pretty solid linear signal in the data. Adding hidden layers helps incrementally, 3L gets ~75.1% and 4L gets ~75.2% on test. The small gap between train and test accuracy across all models means there's no overfitting, which is good.
 
---- Training NeuralNet_2L ---
-Final In-Sample MSE Loss: 0.5000 | R^2: -1.0000
-Final Test (Out-of-Sample) MSE Loss: 0.4990 | R^2: -0.9962
+Learning Rate Tuning: 
+0.001 beat 0.01 and 0.1 on both train and test accuracy. The 0.1 rate hurt performance (74.7% -> 72.6%), which suggests it was overshooting the loss landscape and bouncing around the minimum instead of settling into it. The slower 0.001 rate let the optimizer converge more precisely.
 
---- Training NeuralNet_3L ---
-Final In-Sample MSE Loss: 0.5000 | R^2: -1.0000
-Final Test (Out-of-Sample) MSE Loss: 0.5004 | R^2: -1.0016
+Overall takeaway: 
+~75% accuracy on a balanced binary dataset with 21 features is a reasonable result. It's beating random guessing (50%) by a solid margin, but the ceiling around 75% suggests that diabetes prediction from survey data has inherent noise, people with similar risk factor profiles can have different outcomes.
 
---- Training NeuralNet_4L ---
-Final In-Sample MSE Loss: 0.5000 | R^2: -1.0000
-Final Test (Out-of-Sample) MSE Loss: 0.4979 | R^2: -0.9917
+
+## diabetesMain.py output: 
+
+--- Training NeuralNet_2L (Classification) ---
+  In-Sample     -> BCE Loss: 0.5162 | Accuracy: 0.7458
+  Out-of-Sample -> BCE Loss: 0.5180 | Accuracy: 0.7426
+
+--- Training NeuralNet_3L (Classification) ---
+  In-Sample     -> BCE Loss: 0.5257 | Accuracy: 0.7432
+  Out-of-Sample -> BCE Loss: 0.5094 | Accuracy: 0.7481
+
+--- Training NeuralNet_4L (Classification) ---
+  In-Sample     -> BCE Loss: 0.5032 | Accuracy: 0.7529
+  Out-of-Sample -> BCE Loss: 0.5024 | Accuracy: 0.7530
 
 === HYPERPARAMETER EXPERIMENTATION ===
 
 >>> Testing 3L: LR=0.1, Batch Size=16
 
---- Training NeuralNet_3L ---
-Final In-Sample MSE Loss: 0.5000 | R^2: -1.0000
-Final Test (Out-of-Sample) MSE Loss: 0.5004 | R^2: -1.0016
+--- Training NeuralNet_3L (Classification) ---
+  In-Sample     -> BCE Loss: 0.6944 | Accuracy: 0.5000
+  Out-of-Sample -> BCE Loss: 0.6931 | Accuracy: 0.5018
 
 >>> Testing 3L: LR=0.1, Batch Size=64
 
---- Training NeuralNet_3L ---
-Final In-Sample MSE Loss: 0.5000 | R^2: -1.0000
-Final Test (Out-of-Sample) MSE Loss: 0.4953 | R^2: -0.9814
+--- Training NeuralNet_3L (Classification) ---
+  In-Sample     -> BCE Loss: 0.5191 | Accuracy: 0.7449
+  Out-of-Sample -> BCE Loss: 0.5312 | Accuracy: 0.7406
 
 >>> Testing 3L: LR=0.01, Batch Size=16
 
---- Training NeuralNet_3L ---
-Final In-Sample MSE Loss: 0.1831 | R^2: 0.2675
-Final Test (Out-of-Sample) MSE Loss: 0.1761 | R^2: 0.2957
+--- Training NeuralNet_3L (Classification) ---
+  In-Sample     -> BCE Loss: 0.5144 | Accuracy: 0.7479
+  Out-of-Sample -> BCE Loss: 0.5110 | Accuracy: 0.7474
 
 >>> Testing 3L: LR=0.01, Batch Size=64
 
---- Training NeuralNet_3L ---
-Final In-Sample MSE Loss: 0.1705 | R^2: 0.3179
-Final Test (Out-of-Sample) MSE Loss: 0.1702 | R^2: 0.3192
+--- Training NeuralNet_3L (Classification) ---
+  In-Sample     -> BCE Loss: 0.5112 | Accuracy: 0.7486
+  Out-of-Sample -> BCE Loss: 0.5078 | Accuracy: 0.7506
 
 >>> Testing 3L: LR=0.001, Batch Size=16
 
---- Training NeuralNet_3L ---
-Final In-Sample MSE Loss: 0.1673 | R^2: 0.3307
-Final Test (Out-of-Sample) MSE Loss: 0.1689 | R^2: 0.3242
+--- Training NeuralNet_3L (Classification) ---
+  In-Sample     -> BCE Loss: 0.5004 | Accuracy: 0.7546
+  Out-of-Sample -> BCE Loss: 0.5169 | Accuracy: 0.7404
 
 >>> Testing 3L: LR=0.001, Batch Size=64
 
---- Training NeuralNet_3L ---
-Final In-Sample MSE Loss: 0.5000 | R^2: -1.0000
-Final Test (Out-of-Sample) MSE Loss: 0.4994 | R^2: -0.9976
+--- Training NeuralNet_3L (Classification) ---
+  In-Sample     -> BCE Loss: 0.5032 | Accuracy: 0.7518
+  Out-of-Sample -> BCE Loss: 0.5060 | Accuracy: 0.7521
+
+### Classification vs. Regression:
+AutoMPG and California Housing are both regression problems, they're predicting continous numbers. This diabetes health indicators dataset is a classification problem, so it has some different requirements. 
+The original PyTorchNetUtils class in project2_utils.py had MSE, ReLU outputs, and R² hardcoded for our regression problems. Using this class returned poor R² values for this diabetes dataset, so I created the PyTorchClassificationUtils class in project2_classification_utils.py file to have a classification-specific loss function, output activiation, and evaluation metric.
+
+Loss Function:
+Regression uses MSE where classification uses BCE. 
+BCE heavily penalizes confident, wrong predictions and it provides steeper gradients resulting in faster convergence in classification. When you use MSE on binary 0/1 targets (classification problems), the gradients are weak and the model struggles to learn, so I was getting R²=-1.0 and MSE=0.5 for this dataset. Using MSE for classification had a poor performance since it doesn't penalize incorrect binary predictions strongly enough.
+
+Output Activation:
+Regression can output any number, so ReLU on the output is fine. Classification needs probabilities between 0 and 1, so the output layer needs sigmoid. Without it, the model can output values like 3.7 or -2.1, which makes no sense for "probability of diabetes."
+
+Evaluation Metric:
+R² measures how well you explain variance in a continuous target (used for evaluating regression model accuracy). It makes sense for house prices but not for binary labels. Accuracy (what percentage was classified correctly) is the better metric for classification.
+
+### Model comparison:
+The progression is 2L (74.3%) -> 3L (74.8%) -> 4L (75.3%). The gain here is modest, but that seems to be typical for tabular health data.
+
+### Hyperparameter tuning highlights:
+LR=0.1 with batch size 16 completely failed (50% accuracy = random guessing on a balanced dataset). 
+LR=0.1 with batch size 64 recovered a tiny bit (74.1%), which tells me that 0.1 is too aggressive.
+LR=0.01 is stable across both batch sizes (~74.8–75.1%).
+LR=0.001 achieved the best in-sample accuracy (75.5%) but test accuracy dropped to 74.0% with batch size 16, that's a slight overfitting signal. With batch size 64 it balanced out better (75.2% test).
+Best config: LR=0.001, batch size 64. It has good accuracy on both in-sample and out-of-sample with a small overfitting gap.
