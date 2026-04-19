@@ -4,6 +4,7 @@ target/
 !**/src/test/**/target/
 data/
 !data/**/README.md
+!data/finalProject/UCI_Credit_Card_Cleaned.csv
 src/main/scala/personal/
 notebooks/personal
 
