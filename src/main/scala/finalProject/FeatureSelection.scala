@@ -15,11 +15,11 @@ object FeatureSelection {
     22
   )
 
-  @main def runHousePriceRegressions(): Unit = {
+  @main def runCCFeatureSelection(): Unit = {
     val utils = new Project1Utils(data.x, data.y, data.fname)
 
-    utils.runForwardSelect()
-    utils.runBackwardsElimination()
+    //utils.runForwardSelect()
+    //utils.runBackwardsElimination()
     utils.runStepwiseSelect()
   }
 }
