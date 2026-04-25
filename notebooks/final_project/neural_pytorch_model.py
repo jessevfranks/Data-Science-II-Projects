@@ -6,8 +6,7 @@ Two phases:
   2. Hyperparameter tuning: on the best architecture per dataset, grid-search
      learning rate and dropout using 3-fold cross-validation.
 
-Phase 1 answers "does depth help?" Phase 2 answers "given the best depth,
-how much can tuning squeeze out?" — both relevant to the report.
+
 """
 
 import pandas as pd
@@ -22,7 +21,8 @@ from sklearn.base import BaseEstimator, ClassifierMixin
 from sklearn.utils.validation import check_is_fitted
 from sklearn.model_selection import train_test_split, StratifiedKFold
 from sklearn.pipeline import Pipeline
-from sklearn.metrics import f1_score
+from sklearn.metrics import f1_score, confusion_matrix
+
 
 from credit_default_models import (
     load_and_prepare_uci,
@@ -333,6 +333,82 @@ def run_experiments_for_dataset(dataset_name, X, y, numeric_features,
 
     return phase1_df, tuning_grid, tuned_result
 
+def find_best_threshold(trained_model, X_test, y_test, cost_matrix):
+    """
+    Sweep decision thresholds from 0.05 to 0.95 and find the one that
+    minimizes total cost. Returns a DataFrame of cost-per-threshold and
+    the best threshold + cost.
+    """
+    if not hasattr(trained_model, "predict_proba"):
+        return None, None, None
+
+    y_prob = trained_model.predict_proba(X_test)[:, 1]
+    fp_cost, fn_cost = cost_matrix
+
+    thresholds = np.arange(0.05, 0.96, 0.05)
+    rows = []
+    for t in thresholds:
+        y_pred = (y_prob >= t).astype(int)
+        tn, fp, fn, tp = confusion_matrix(y_test, y_pred).ravel()
+        cost = fp * fp_cost + fn * fn_cost
+        rows.append({
+            "Threshold": round(t, 2),
+            "FP": fp, "FN": fn, "TP": tp, "TN": tn,
+            "Total_Cost": cost,
+            "Recall": tp / (tp + fn) if (tp + fn) > 0 else 0,
+            "Precision": tp / (tp + fp) if (tp + fp) > 0 else 0,
+        })
+
+    df = pd.DataFrame(rows)
+    best_row = df.loc[df["Total_Cost"].idxmin()]
+    return df, best_row["Threshold"], best_row["Total_Cost"]
+
+
+def threshold_tuning_analysis(models_dict, X, y, numeric_features,
+                                categorical_features, cost_matrix):
+    """Run threshold tuning for each model and print a summary."""
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.20, stratify=y, random_state=RANDOM_STATE
+    )
+
+    print("\n" + "=" * 80)
+    print(f"THRESHOLD TUNING (cost = {cost_matrix[0]}*FP + {cost_matrix[1]}*FN)")
+    print("=" * 80)
+    print(f"Theoretical optimal threshold for this cost ratio: "
+          f"{1 / (1 + cost_matrix[1] / cost_matrix[0]):.2f}\n")
+
+    summary_rows = []
+    for model_name, pipeline in models_dict.items():
+        pipeline.fit(X_train, y_train)
+        df, best_t, best_cost = find_best_threshold(pipeline, X_test, y_test, cost_matrix)
+        if df is None:
+            continue
+
+        # Default-threshold cost for comparison
+        y_pred_default = pipeline.predict(X_test)
+        _, fp_def, fn_def, _ = confusion_matrix(y_test, y_pred_default).ravel()
+        default_cost = fp_def * cost_matrix[0] + fn_def * cost_matrix[1]
+
+        summary_rows.append({
+            "Model": model_name,
+            "Default_Threshold_Cost": default_cost,
+            "Best_Threshold": best_t,
+            "Best_Threshold_Cost": int(best_cost),
+            "Cost_Reduction": int(default_cost - best_cost),
+        })
+
+        print(f"\n{model_name}:")
+        print(df[["Threshold", "FP", "FN", "Recall", "Precision", "Total_Cost"]].to_string(index=False))
+        print(f"  -> Default (0.5) cost: {default_cost}")
+        print(f"  -> Best threshold ({best_t}) cost: {int(best_cost)}  (reduction: {int(default_cost - best_cost)})")
+
+    summary = pd.DataFrame(summary_rows).sort_values("Best_Threshold_Cost")
+    print("\n" + "=" * 80)
+    print("SUMMARY: ALL MODELS RANKED BY COST-OPTIMAL THRESHOLD")
+    print("=" * 80)
+    print(summary.to_string(index=False))
+
+    return summary
 
 
 def main():
@@ -385,6 +461,33 @@ def main():
     print("\nBEST MODEL PER DATASET (by test-set F1):")
     best = all_results.loc[all_results.groupby("Dataset")["F1"].idxmax()]
     print(best[cols_to_show].to_string(index=False))
+
+    # Threshold tuning on German (has a cost matrix)
+    print("\n\n" + "#" * 80)
+    print("# THRESHOLD TUNING — GERMAN CREDIT")
+    print("#" * 80)
+
+    preprocessor_t = build_preprocessor(num_ger, cat_ger)
+    ger_models_for_threshold = {
+        "PyTorch NN — 2 Hidden (tuned)": Pipeline(steps=[
+            ("preprocessor", preprocessor_t),
+            ("classifier", PyTorchMLP(
+                hidden_sizes=(64, 32),
+                dropout=0.3,
+                lr=0.0005,
+                epochs=100,
+                batch_size=256,
+                class_weight="balanced",
+                random_state=RANDOM_STATE,
+            ))
+        ]),
+    }
+
+    threshold_summary = threshold_tuning_analysis(
+        ger_models_for_threshold,
+        X_ger, y_ger, num_ger, cat_ger,
+        cost_matrix=(1, 5),
+    )
 
     output_path = "/Users/aidyn/Desktop/ScalaTion-Projects/data/finalProject/pytorch_model_results.csv"
     all_results.to_csv(output_path, index=False)
